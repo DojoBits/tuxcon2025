@@ -1,0 +1,25 @@
+# Dojobits Vagrant hands-on labs
+Vagrant.configure("2") do |config|
+  # Ubutntu 24.04 LTS Noble Numbat
+  config.vm.box = "bento/ubuntu-24.04"
+  config.vm.box_version = "202404.26.0"
+  config.vm.box_download_insecure = true
+
+  # Works on Mac with VMware Fusion
+  config.vm.provider "vmware_desktop" do |v|
+    v.vmx['displayName'] = 'dojobits-labs'
+    v.memory = 3072
+    v.cpus = 2
+    v.ssh_info_public = true
+    v.gui = true
+    v.linked_clone = false
+    v.vmx["ethernet0.virtualdev"] = "vmxnet3"
+  end
+
+  # Works on Linux / Windows with VirtualBox
+  config.vm.provider "virtualbox" do |vb|
+    vb.name = "dojobits-labs"
+    vb.memory = 3072
+    vb.cpus = 2
+  end
+end
