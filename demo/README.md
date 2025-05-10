@@ -165,8 +165,8 @@ vagrant@ubuntu:~$ sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
 ## 0.2.1 Clone the workshop GIT repository
 
 ```bash
-~$ git clone https://github.com/DojoBits/tuxcon2024.git
-~$ cd tuxcon2024/demo
+~$ git clone https://github.com/DojoBits/tuxcon2025.git
+~$ cd tuxcon2025/demo
 ```
 
 ### 1. Install Docker
@@ -177,7 +177,7 @@ is a script to install it but before executing it take a look.
 `cat install-docker.sh`
 
 ```bash
-~/tuxcon2024/demo$ bash install-docker.sh
+~/tuxcon2025/demo$ bash install-docker.sh
 ```
 
 ## 2.0 Overview Django app
@@ -192,25 +192,25 @@ to simulate real service.
 Lets first install pip, venv and bash-completion:
 
 ```bash
-~/tuxcon2024/demo$ sudo apt install python3-pip python3.12-venv bash-completion -y
+~/tuxcon2025/demo$ sudo apt install python3-pip python3.12-venv bash-completion -y
 
 ```
 
 We will create a virtual environment for our Django app to isolate it from the system Python packages. Lets create the virtual environment and activate it:
 
 ```bash
-~/tuxcon2024/demo$ python3 -m venv myenv
+~/tuxcon2025/demo$ python3 -m venv myenv
 # Activate the virtual environment
-~/tuxcon2024/demo$ source myenv/bin/activate
-(myenv) ~/tuxcon2024/demo$
+~/tuxcon2025/demo$ source myenv/bin/activate
+(myenv) ~/tuxcon2025/demo$
 ```
 
 Now lets install the requirements for our Django app overview the app
 
 ```bash
-(myevn) ~/tuxcon2024/demo$ pip3 install -r requirements.txt
-(myevn) ~/tuxcon2024/demo$ cd myproject/
-(myevn) ~/tuxcon2024/demo/myproject$ ls
+(myevn) ~/tuxcon2025/demo$ pip3 install -r requirements.txt
+(myevn) ~/tuxcon2025/demo$ cd myproject/
+(myevn) ~/tuxcon2025/demo/myproject$ ls
 total 140
 -rw-rw-r-- 1 vagrant vagrant 131072 Oct 30 19:13 db.sqlite3
 -rwxrwxr-x 1 vagrant vagrant    665 Oct 30 19:13 manage.py
@@ -221,7 +221,7 @@ drwxrwxr-x 3 vagrant vagrant   4096 Oct 30 19:13 service
 We can get our Virtual Machine IP address with the command below. To see on which interface to access the service. In our case it is `eth0`. For this VM the IP is 192.168.59.180 but it may differ on your machine.
 
 ```bash
-(myenv) ~/tuxcon2024/demo/myproject$ ip a s
+(myenv) ~/tuxcon2025/demo/myproject$ ip a s
 1: lo: <LOOPBACK,UP,LOWER_UP> mtu 65536 qdisc noqueue state UNKNOWN group default qlen 1000
     link/loopback 00:00:00:00:00:00 brd 00:00:00:00:00:00
     inet 127.0.0.1/8 scope host lo
@@ -275,7 +275,7 @@ Now lets build our Docker image. In our repo we have a `Dockerfile` which will
 build our image. Lets overview it first. The Docker files are in `demo` folder.
 
 ```bash
-~/myproject$ cd ~/tuxcon2024/demo/
+~/myproject$ cd ~/tuxcon2025/demo/
 ```
 ```
 
@@ -396,6 +396,15 @@ Lets overview the tags of the image:
 
 It looks fine. Now we have our image in the local Docker registry.
 
+Before we proceed we need to stop the container and remove it. We don't want to
+have it running while we are testing the Kubernetes deployment. We will hit port
+already in use.
+
+```bash
+~/myproject$ docker stop django
+~/myproject$ docker rm django
+```
+
 ## Scale with Kubernetes
 
 ### 4.0 Install Kubernetes with KinD
@@ -440,14 +449,13 @@ You can now use your cluster with:
 Now lets install our `kubectl` which will be used to interact with our Kubernetes cluster.
 
 ```bash
-~$ bash install-kubectl.sh
 ~/demo$ bash install-kubectl.sh
 % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
 100   138  100   138    0     0     17      0  0:00:08  0:00:07  0:00:01    28
 100 52.4M  100 52.4M    0     0  2644k      0  0:00:20  0:00:20 --:--:-- 11.0M
-^[^[Client Version: v1.32.3
-Kustomize Version: v5.5.0
+^[^[Client Version: v1.33.0
+Kustomize Version: v5.6.0
 Server Version: v1.32.2
 
 ```
@@ -633,6 +641,12 @@ Hands-on because we have multiple virtualization layers and network isolations
 we can access the service only from the VM. So locally with `curl` we see it works targeting the MetalLB IP but for GUI we need a Desktop VM which is fine but its heavy. For that reason we will use `kubectl port-forward` to access the service from our host machine by forwarding the port to our VM IP.
 
 Because we have a development env we use kind it shard to use the MetalLB IP from the VM. Lets use Kubernetes port-forward to access the service from our host machine. But we will export it to our VM public IP 192.168.59.180
+
+What was the IP ? Ohhh yeaa we create an variable for that. Lets use it.
+
+```bash
+~$ echo $MY_IP
+```
 
 ```bash
 ~$ kubectl port-forward --address 0.0.0.0 svc/django-app 8000:8000
